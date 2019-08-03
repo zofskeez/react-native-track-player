@@ -73,7 +73,7 @@ public class Track {
     public final long queueId;
 
     public Track(Context context, Bundle bundle, int ratingType) {
-        id = bundle.getString("id");
+        id = bundle.getString("id", null);
 
         resourceId = Utils.getRawResourceId(context, bundle, "url");
 
@@ -134,7 +134,10 @@ public class Track {
         builder.putString(METADATA_KEY_DATE, date);
         builder.putString(METADATA_KEY_GENRE, genre);
         builder.putString(METADATA_KEY_MEDIA_URI, uri.toString());
-        builder.putString(METADATA_KEY_MEDIA_ID, id);
+
+        if (id != null) {
+            builder.putString(METADATA_KEY_MEDIA_ID, id);
+        }
 
         if (duration > 0) {
             builder.putLong(METADATA_KEY_DURATION, duration);
