@@ -3,6 +3,7 @@ package com.guichaguri.trackplayer.service.player;
 import android.content.Context;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import androidx.annotation.NonNull;
 import com.facebook.react.bridge.Promise;
 import com.google.android.exoplayer2.*;
 import com.google.android.exoplayer2.Player.EventListener;
@@ -40,11 +41,13 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
     protected long lastKnownPosition = C.POSITION_UNSET;
     protected int previousState = PlaybackStateCompat.STATE_NONE;
     protected float volumeMultiplier = 1.0F;
+    protected boolean autoUpdateMetadata;
 
-    public ExoPlayback(Context context, MusicManager manager, T player) {
+    public ExoPlayback(Context context, MusicManager manager, T player, boolean autoUpdateMetadata) {
         this.context = context;
         this.manager = manager;
         this.player = player;
+        this.autoUpdateMetadata = autoUpdateMetadata;
 
         Player.MetadataComponent component = player.getMetadataComponent();
         if(component != null) component.addMetadataOutput(this);
@@ -165,6 +168,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
         return false;
     }
 
+    public boolean shouldAutoUpdateMetadata() {
+        return autoUpdateMetadata;
+    }
+
     public long getPosition() {
         return player.getCurrentPosition();
     }
@@ -236,7 +243,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
     }
 
     @Override
-    public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+    public void onTimelineChanged(@NonNull Timeline timeline, int reason) {
         Log.d(Utils.LOG, "onTimelineChanged: " + reason);
 
         if((reason == Player.TIMELINE_CHANGE_REASON_PREPARED || reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC) && !timeline.isEmpty()) {
@@ -269,7 +276,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
     }
 
     @Override
-    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+    public void onTracksChanged(TrackGroupArray trackGroups, @NonNull TrackSelectionArray trackSelections) {
         for(int i = 0; i < trackGroups.length; i++) {
             // Loop through all track groups.
             // As for the current implementation, there should be only one
@@ -340,7 +347,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
     }
 
     @Override
-    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+    public void onPlaybackParametersChanged(@NonNull PlaybackParameters playbackParameters) {
         // Speed or pitch changes
     }
 
@@ -421,7 +428,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener, Me
     }
 
     @Override
-    public void onMetadata(Metadata metadata) {
+    public void onMetadata(@NonNull Metadata metadata) {
         handleId3Metadata(metadata);
         handleIcyMetadata(metadata);
     }

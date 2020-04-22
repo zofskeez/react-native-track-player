@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.Player;
 import com.guichaguri.trackplayer.service.MusicBinder;
 import com.guichaguri.trackplayer.service.MusicService;
 import com.guichaguri.trackplayer.service.Utils;
+import com.guichaguri.trackplayer.service.models.NowPlayingMetadata;
 import com.guichaguri.trackplayer.service.models.Track;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
 
@@ -166,6 +167,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @ReactMethod
     public void destroy() {
+        // Ignore if it was already destroyed
+        if (binder == null && !connecting) return;
+
         try {
             if(binder != null) {
                 binder.destroy();
@@ -282,6 +286,25 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
                 playback.updateTrack(index, track);
                 callback.resolve(null);
             }
+        });
+    }
+
+    @ReactMethod
+    public void updateNowPlayingMetadata(ReadableMap map, final Promise callback) {
+        final Bundle data = Arguments.toBundle(map);
+
+        waitForConnection(() -> {
+            NowPlayingMetadata metadata = new NowPlayingMetadata(getReactApplicationContext(), data, binder.getRatingType());
+            binder.updateNowPlayingMetadata(metadata);
+            callback.resolve(null);
+        });
+    }
+
+    @ReactMethod
+    public void clearNowPlayingMetadata(final Promise callback) {
+        waitForConnection(() -> {
+            binder.clearNowPlayingMetadata();
+            callback.resolve(null);
         });
     }
 
