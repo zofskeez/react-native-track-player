@@ -36,8 +36,6 @@ First of all, you need to create a [Track Structure](https://react-native-kit.gi
 
 ```javascript
 var track = {
-    id: 'unique track id', // Must be a string, required
-    
     url: 'http://example.com/avaritia.mp3', // Load media from the network
     url: require('./avaritia.ogg'), // Load media from the app bundle
     url: 'file:///storage/sdcard0/Music/avaritia.wav' // Load media from the file system 
@@ -55,12 +53,12 @@ var track = {
 ```
 [Check the documentation](https://react-native-kit.github.io/react-native-track-player/documentation/#track-structure) for more information about the properties you can have in a track structure.
 
-After creating it, you can [add](https://react-native-kit.github.io/react-native-track-player/documentation/#addtracks-insertbeforeid) it to the queue:
+After creating it, you can [add](https://react-native-kit.github.io/react-native-track-player/documentation/#addtracks-insertbeforeindex) it to the queue:
 
 ```javascript
 // Adding to the queue
 // You can provide multiple items in one single call
-TrackPlayer.add([track, track2]).then(function() {
+TrackPlayer.add([track, track2]).then(index => {
     // The tracks were added
 });
 ```
@@ -72,8 +70,8 @@ After a media file has been loaded, you can get information about it (such as re
 // State is one of STATE_NONE, STATE_PLAYING, STATE_PAUSED, STATE_STOPPED, STATE_BUFFERING
 let state = await TrackPlayer.getState();
 
-let trackId = await TrackPlayer.getCurrentTrack();
-let trackObject = await TrackPlayer.getTrack(trackId);
+let trackIndex = await TrackPlayer.getCurrentTrack();
+let trackObject = await TrackPlayer.getTrack(trackIndex);
 
 // Position, buffered position and duration return values in seconds
 let position = await TrackPlayer.getPosition();
@@ -103,12 +101,12 @@ TrackPlayer.setVolume(0.5);
 ### Controlling the queue
 ```javascript
 // Skipping
-TrackPlayer.skip(trackId);
+TrackPlayer.skip(trackIndex);
 TrackPlayer.skipToNext();
 TrackPlayer.skipToPrevious();
 
 // Removing from the queue
-TrackPlayer.remove([trackId1, trackId2]);
+TrackPlayer.remove([trackIndex1, trackIndex2]);
 
 // Retrieving the queue
 let tracks = await TrackPlayer.getQueue();

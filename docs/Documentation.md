@@ -9,6 +9,7 @@ permalink: /documentation/
   * [State](#state)
   * [Rating](#rating)
   * [Capability](#capability)
+  * [Repeat Mode](#repeat-mode)
   * [Pitch Algorithm](#pitch-algorithm)
 * [Functions](#functions)
   * [Lifecycle](#lifecycle-functions)
@@ -79,6 +80,14 @@ Capability indicating the ability to set the rating value based on the rating ty
 Capability indicating the ability to jump forward by the amount of seconds specified in the options
 #### `CAPABILITY_JUMP_BACKWARD`
 Capability indicating the ability to jump backward by the amount of seconds specified in the options
+
+### Repeat Mode
+#### `REPEAT_OFF`
+Doesn't repeat.
+#### `REPEAT_TRACK`
+Loops the current track.
+#### `REPEAT_QUEUE`
+Repeats the whole queue.
 
 ### Pitch Algorithm
 #### `PITCH_ALGORITHM_LINEAR`
@@ -151,15 +160,15 @@ Registers an event handler. This function should only be called once, and should
 | handler | `function` | The function that acts as an event handler |
 
 ### Queue Functions
-#### `add(tracks, insertBeforeId)`
+#### `add(tracks, insertBeforeIndex)`
 Adds one or more tracks to the queue.
 
-**Returns:** `Promise`
+**Returns:** `Promise<number>` - The promise resolves with the first added track index
 
 | Param          | Type     | Description   |
 | -------------- | -------- | ------------- |
 | tracks         | `array` of [Track Object](#track-object) or a single one | The tracks that will be added |
-| insertBeforeId | `string` | The ID of the track that will be located immediately after the inserted tracks. Set it to `null` to add it at the end of the queue |
+| insertBeforeIndex | `number` | The index of the track that will be located immediately after the inserted tracks. Set it to `null` to add it at the end of the queue |
 
 #### `remove(tracks)`
 Removes one or more tracks from the queue.
@@ -168,16 +177,26 @@ Removes one or more tracks from the queue.
 
 | Param  | Type     | Description   |
 | ------ | -------- | ------------- |
-| tracks | `array` of track ids or a single one | The tracks that will be removed |
+| tracks | `array` of track indexes or a single one | The tracks that will be removed |
 
-#### `skip(id)`
+#### `move(index, newIndex)`
+Moves a track to a new position.
+
+**Returns:** `Promise`
+
+| Param    | Type     | Description     |
+| -------- | -------- | --------------- |
+| index    | `number` | The track index |
+| newIndex | `number` | Its new index   |
+
+#### `skip(index)`
 Skips to a track in the queue.
 
 **Returns:** `Promise`
 
-| Param  | Type     | Description   |
-| ------ | -------- | ------------- |
-| id  | `string` | The track id  |
+| Param  | Type     | Description     |
+| ------ | -------- | --------------- |
+| index  | `number` | The track index |
 
 #### `skipToNext()`
 Skips to the next track in the queue.
@@ -192,19 +211,19 @@ Skips to the previous track in the queue.
 #### `reset()`
 Resets the player stopping the current track and clearing the queue.
 
-#### `getTrack(id)`
+#### `getTrack(index)`
 Gets a track object from the queue.
 
 **Returns:** `Promise<`Object as described in [Track Object](#track-object)`>`
 
-| Param    | Type       | Description   |
-| -------- | ---------- | ------------- |
-| id       | `string`   | The track ID  |
+| Param    | Type       | Description     |
+| -------- | ---------- | --------------- |
+| index    | `number`   | The track index |
 
 #### `getCurrentTrack()`
-Gets the id of the current track
+Gets the index of the current track
 
-**Returns:** `Promise<string>`
+**Returns:** `Promise<number>`
 
 #### `getQueue()`
 Gets the whole queue
@@ -214,7 +233,7 @@ Gets the whole queue
 #### `removeUpcomingTracks()`
 Clears any upcoming tracks from the queue.
 
-#### `updateMetadataForTrack(id, metadata)`
+#### `updateMetadataForTrack(index, metadata)`
 Updates the metadata of a track in the queue.
 If the current track is updated, the notification and the Now Playing Center will be updated accordingly.
 
@@ -222,8 +241,20 @@ If the current track is updated, the notification and the Now Playing Center wil
 
 | Param    | Type       | Description   |
 | -------- | ---------- | ------------- |
-| id       | `string`   | The track ID  |
+| index    | `number`   | The track index  |
 | metadata | `object`   | A subset of the [Track Object](#track-object) with only the `artwork`, `title`, `artist`, `album`, `description`, `genre`, `date`, `rating` and `duration` properties. |
+
+#### `setRepeatMode(mode)`
+Sets the repeat mode.
+
+| Param    | Type       | Description     |
+| -------- | ---------- | --------------- |
+| mode     | [Repeat Mode](#repeat-mode) | The repeat mode |
+
+#### `getRepeatMode()`
+Gets the repeat mode.
+
+**Returns:** [Repeat Mode](#repeat-mode)
 
 ### Player Functions
 #### `updateOptions(options)`
@@ -367,7 +398,7 @@ Fired when the user skips to a track in the queue. Only fired if the `CAPABILITY
 
 | Param | Type     | Description   |
 | ----- | -------- | ------------- |
-| id    | `string` | The track id  |
+| index | `number` | The track index  |
 
 #### `remote-next`
 Fired when the user presses the next track button. Only fired if the `CAPABILITY_SKIP_TO_NEXT` is allowed.
@@ -431,16 +462,16 @@ Fired when a track is changed.
 
 | Param     | Type     | Description                            |
 | --------- | -------- | -------------------------------------- |
-| track     | `string` | The previous track id. Might be null   |
+| track     | `number` | The previous track index. Might be null   |
 | position  | `number` | The previous track position in seconds |
-| nextTrack | `string` | The next track id. Might be null       |
+| nextTrack | `number` | The next track index. Might be null       |
 
 #### `playback-queue-ended`
 Fired when the queue reaches the end.
 
 | Param    | Type     | Description                               |
 | -------- | -------- | ----------------------------------------- |
-| track    | `string` | The previous track id. Might be null      |
+| track    | `number` | The previous track index. Might be null      |
 | position | `number` | The previous track position in seconds    |
 
 #### `playback-metadata-received`
@@ -483,7 +514,7 @@ A component base that updates itself every second with a new position. Your app 
 ### Track Object
 Tracks in the player queue are plain javascript objects as described below.
 
-Only the `id`, `url`, `title` and `artist` properties are required for basic playback
+Only the `url`, `title` and `artist` properties are required for basic playback
 
 | Param          | Type                        | Description  |
 | -------------- | --------------------------- | ------------ |
